@@ -59,15 +59,6 @@ All pre-launch and post-launch features complete!
 
 ---
 
-## Non-Goals (Explicitly saying no)
-
-- **Web dashboard** — Defeats "one command" simplicity
-- **Hosted service** — User owns their API key, no middleman
-- **Complex eval metrics** (RAG, hallucination detection, etc.) — Use promptfoo/DeepEval for that
-- **Prompt optimization suggestions** — Out of scope, focus on model selection
-
----
-
 ## Prioritization Logic
 
 **Pre-Launch (1-6)**: Must-haves for credible v1.0
