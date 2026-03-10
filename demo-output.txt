@@ -1,0 +1,35 @@
+
+> which-claude@0.1.0 dev
+> tsx src/index.ts --config example.yaml --project 10000
+
+Running 5 cases across 3 models...
+
+Running 5 cases with thinking mode comparison...
+
+
+which-claude · Support ticket classifier · 5 cases
+
+[90m┌────────[39m[90m┬─────────[39m[90m┬────────[39m[90m┬────────[39m[90m┬───────────┐[39m
+[90m│[39m[36m Model  [39m[90m│[39m[36m Quality [39m[90m│[39m[36m Avg ms [39m[90m│[39m[36m Tokens [39m[90m│[39m[36m Cost / 1K [39m[90m│[39m
+[90m├────────[39m[90m┼─────────[39m[90m┼────────[39m[90m┼────────[39m[90m┼───────────┤[39m
+[90m│[39m Sonnet [90m│[39m 5/5     [90m│[39m 1053   [90m│[39m 442    [90m│[39m $0.440    [90m│[39m
+[90m├────────[39m[90m┼─────────[39m[90m┼────────[39m[90m┼────────[39m[90m┼───────────┤[39m
+[90m│[39m Opus   [90m│[39m 5/5     [90m│[39m 2200   [90m│[39m 512    [90m│[39m $3.252    [90m│[39m
+[90m└────────[39m[90m┴─────────[39m[90m┴────────[39m[90m┴────────[39m[90m┴───────────┘[39m
+
+✅ Use SONNET
+   All models scored 1/2. Sonnet saves ~0% vs sonnet with no quality loss.
+
+💡 Thinking mode analysis:
+   Sonnet: 0.6 → 1.0 (+67%) with thinking
+   Cost increase: +$0.2220 per 1K calls
+   Consider enabling thinking for improved quality.
+
+
+📊 Cost projection at 10,000 calls/day:
+
+  Sonnet   $132/month           ($1585/year)
+  Opus     $976/month           ($11707/year)
+
+  💰 Sonnet saves $843/month ($10122/year) vs opus
+

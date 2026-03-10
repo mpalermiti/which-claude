@@ -34,6 +34,26 @@ npx which-claude --config path/to/config.yaml
 
 Requires `ANTHROPIC_API_KEY` in your environment.
 
+## Demo
+
+```
+which-claude · Email tone classifier · 3 cases
+
+┌────────┬─────────┬────────┬────────┬───────────┐
+│ Model  │ Quality │ Avg ms │ Tokens │ Cost / 1K │
+├────────┼─────────┼────────┼────────┼───────────┤
+│ Haiku  │   3/3   │   507  │  181   │  $0.061   │
+│ Sonnet │   3/3   │  1161  │  184   │  $0.232   │
+└────────┴─────────┴────────┴────────┴───────────┘
+
+✅ Use HAIKU
+   All models scored 3/3. Haiku saves 74% vs Sonnet.
+```
+
+**Key insight:** Both models perform perfectly, but Haiku is 74% cheaper!
+
+See [DEMO.md](./DEMO.md) for more examples including cost projection, thinking mode analysis, and caching recommendations.
+
 ## Config Format
 
 ### Structured output (classification, extraction, JSON)
