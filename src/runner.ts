@@ -26,10 +26,14 @@ export async function runCase(
     const start = Date.now();
 
     // Build request params
+    // When thinking is enabled, max_tokens must be > thinking.budget_tokens
+    const maxTokens = options.thinking ? 4096 : options.max_tokens;
+    const thinkingBudget = options.thinking ? 2000 : 0;
+
     const params: any = {
       model: PRICING[model].apiModelId,
-      max_tokens: options.max_tokens,
-      temperature: options.temperature,
+      max_tokens: maxTokens,
+      temperature: options.thinking ? 1 : options.temperature, // Thinking mode requires temperature: 1
       messages: [
         {
           role: 'user',
@@ -41,7 +45,7 @@ export async function runCase(
 
     // Add thinking parameter if enabled (requires extended_thinking feature)
     if (options.thinking) {
-      params.thinking = { type: 'enabled', budget_tokens: 2000 };
+      params.thinking = { type: 'enabled', budget_tokens: thinkingBudget };
     }
 
     const response = await client.messages.create(params);

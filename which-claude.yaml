@@ -4,16 +4,20 @@ name: "Email tone classifier"
 
 system: |
   Classify the tone of the following email as one of: professional, casual, urgent, friendly
+  Respond with ONLY the classification label, nothing else.
 
 cases:
   - input: "Hi! Just wanted to check in and see how you're doing. Let me know if you need anything!"
     expect: "friendly"
+    match: contains
 
   - input: "Per our discussion, please submit the Q4 report by EOD Friday. Regards,"
     expect: "professional"
+    match: contains
 
   - input: "URGENT: Server is down. Need immediate assistance."
     expect: "urgent"
+    match: contains
 
 options:
   models: [haiku, sonnet]
