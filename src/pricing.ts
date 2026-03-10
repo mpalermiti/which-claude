@@ -47,3 +47,27 @@ export function calculateCostPer1k(
   const totalCost = calculateCost(model, totalInputTokens, totalOutputTokens);
   return (totalCost / numCalls) * 1000;
 }
+
+export function projectMonthlyCost(
+  costPer1k: number,
+  dailyCallVolume: number
+): number {
+  const dailyCost = (costPer1k / 1000) * dailyCallVolume;
+  return dailyCost * 30;
+}
+
+export function projectAnnualCost(
+  costPer1k: number,
+  dailyCallVolume: number
+): number {
+  return projectMonthlyCost(costPer1k, dailyCallVolume) * 12;
+}
+
+export interface CostProjection {
+  dailyVolume: number;
+  model: ModelName;
+  costPer1k: number;
+  dailyCost: number;
+  monthlyCost: number;
+  annualCost: number;
+}

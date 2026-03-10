@@ -8,8 +8,12 @@ import Anthropic from '@anthropic-ai/sdk';
 import chalk from 'chalk';
 import { loadConfig, getDefaultOptions } from './config.js';
 import { runAllCases, runAllCasesWithThinkingComparison } from './runner.js';
+import { runAllCasesViaBatch, resumeBatch } from './batch.js';
 import { buildSummaries, generateRecommendation, analyzeThinkingMode, generateThinkingRecommendation } from './recommender.js';
 import { renderTable, renderVerbose, renderJson, renderDryRun } from './output.js';
+import { renderCostProjection, renderQuickReference } from './projection.js';
+import { watchConfigFile } from './watch.js';
+import { analyzeCaching, renderCachingAnalysis, estimateSystemPromptTokens } from './caching.js';
 import { ModelName } from './types.js';
 
 const program = new Command();
@@ -24,11 +28,17 @@ program
   .option('-m, --models <models>', 'Override models to test (comma-separated)')
   .option('--dry-run', 'Validate config and show estimated cost')
   .option('--no-recommend', 'Skip recommendation')
+  .option('--project <volume>', 'Show cost projection at specified daily call volume')
+  .option('--quick-ref', 'Show quick reference cost table (1K, 10K, 100K calls/day)')
+  .option('-w, --watch', 'Watch config file and re-run on changes')
+  .option('--analyze-caching', 'Analyze prompt caching savings potential')
+  .option('--batch', 'Use Batch API for 50% cost savings (slower, async)')
+  .option('--batch-id <id>', 'Resume or check status of existing batch')
   .parse(process.argv);
 
 const options = program.opts();
 
-async function main() {
+async function runTests() {
   try {
     // Load and validate config
     const config = await loadConfig(options.config);
@@ -62,16 +72,48 @@ async function main() {
     // Initialize Anthropic client
     const client = new Anthropic({ apiKey });
 
+    // Check if resuming a batch
+    if (options.batchId) {
+      await resumeBatch(client, options.batchId);
+      return;
+    }
+
+    // Determine run mode
+    const useBatch = options.batch;
+
+    if (useBatch) {
+      console.log(
+        chalk.dim(
+          `Running ${config.cases.length} cases via Batch API (50% cost savings, may take 10-30 min)...\n`
+        )
+      );
+    } else {
+      console.log(
+        chalk.dim(`Running ${config.cases.length} cases across ${modelList.length} models...\n`)
+      );
+    }
+
     // Determine if we should run thinking mode comparison
     const thinkingMode = config.options?.thinking || 'auto';
     const shouldTestThinking =
-      thinkingMode === 'auto' && (modelList.includes('sonnet') || modelList.includes('opus'));
+      thinkingMode === 'auto' &&
+      !useBatch && // Can't use thinking comparison with batch mode
+      (modelList.includes('sonnet') || modelList.includes('opus'));
 
     let caseResults;
     let thinkingAnalysis;
     let thinkingRecommendation;
 
-    if (shouldTestThinking) {
+    if (useBatch) {
+      // Run via Batch API
+      caseResults = await runAllCasesViaBatch(client, {
+        ...config,
+        options: {
+          ...config.options,
+          models: modelList,
+        },
+      });
+    } else if (shouldTestThinking) {
       // Run with thinking mode comparison
       console.log(chalk.dim(`Running ${config.cases.length} cases with thinking mode comparison...\n`));
 
@@ -138,6 +180,32 @@ async function main() {
         console.log(thinkingRecommendation + '\n');
       }
     }
+
+    // Cost projection if requested
+    if (options.project) {
+      const volume = parseInt(options.project);
+      if (isNaN(volume) || volume <= 0) {
+        console.error(chalk.red('\n✗ Invalid volume for --project. Must be a positive number.\n'));
+      } else {
+        renderCostProjection(result.summaries, volume);
+      }
+    }
+
+    // Quick reference table if requested
+    if (options.quickRef) {
+      renderQuickReference(result.summaries);
+    }
+
+    // Caching analysis if requested
+    if (options.analyzeCaching) {
+      const systemPromptTokens = estimateSystemPromptTokens(config.system);
+      const cacheAnalyses = analyzeCaching(
+        result.summaries,
+        systemPromptTokens,
+        config.cases.length
+      );
+      renderCachingAnalysis(cacheAnalyses, config.system);
+    }
   } catch (error) {
     if (error instanceof Error) {
       // Handle Anthropic API errors with helpful context
@@ -162,6 +230,19 @@ async function main() {
       console.error(chalk.red('\n✗ Unknown error occurred\n'));
     }
     process.exit(1);
+  }
+}
+
+async function main() {
+  if (options.watch) {
+    // Run once initially
+    await runTests();
+
+    // Then watch for changes
+    watchConfigFile(options.config, runTests);
+  } else {
+    // Single run
+    await runTests();
   }
 }
 
