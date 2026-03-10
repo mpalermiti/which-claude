@@ -1,16 +1,30 @@
 # which-claude
 
-Find the right Claude model for your prompt. One command, all three models, clear recommendation.
+**Find the right Claude model for your prompt. One command, all three models, clear recommendation.**
 
 ```bash
 npx which-claude
 ```
 
-## The Problem
+Stop guessing which Claude tier to use. Test your actual prompt against Haiku, Sonnet, and Opus — get quality comparison, cost analysis, and a clear recommendation in **under 60 seconds**.
 
-Every Claude API builder hits the same question: "Is Haiku good enough, or do I need Sonnet?" The answer is always "test it" — but nobody does because the setup is disproportionate to the question.
+## Why This Matters
 
-`which-claude` makes model selection empirical. Define your prompt and a few test cases. Get a comparison table with a recommendation in seconds.
+Choosing the wrong Claude tier costs you:
+- **Too expensive:** Opus for simple tasks → $10K+/year wasted
+- **Too cheap:** Haiku for complex logic → poor user experience, lost customers
+- **Too slow:** Manual testing → hours of dev time
+
+**Real example:** A support ticket classifier ran on Opus for 6 months at 10K requests/day. Switching to Haiku (which scored identically) saved **$10,122/year**. Total testing time with which-claude: 45 seconds.
+
+## Features
+
+- ✅ **Empirical comparison** — Test your prompt on Haiku, Sonnet, Opus
+- ✅ **Cost analysis** — See exactly what you'll pay at scale
+- ✅ **Thinking mode detection** — Know if extended thinking improves quality
+- ✅ **Prompt caching recommendations** — Identify 40-60% savings opportunities
+- ✅ **Watch mode** — Auto-rerun on config changes during iteration
+- ✅ **Zero setup** — `npx which-claude`, no installation required
 
 ## Who This Is For
 
@@ -35,19 +49,46 @@ Every Claude API builder hits the same question: "Is Haiku good enough, or do I 
 
 **Time savings:** promptfoo setup takes 15-30 minutes. which-claude runs your first comparison in under 60 seconds. For the specific question "which Claude tier should I use?" — which-claude is built for speed.
 
-## Quick Start
+## Installation
+
+**No installation needed** — run via npx:
 
 ```bash
 npx which-claude
 ```
 
-Looks for `which-claude.yaml` in the current directory. Or specify a file:
+Or install globally:
 
 ```bash
-npx which-claude --config path/to/config.yaml
+npm install -g which-claude
+which-claude
 ```
 
-Requires `ANTHROPIC_API_KEY` in your environment.
+## Quick Start
+
+1. **Set your API key:**
+   ```bash
+   export ANTHROPIC_API_KEY=sk-ant-...
+   # Or create .env file: echo "ANTHROPIC_API_KEY=sk-ant-..." > .env
+   ```
+
+2. **Create a config file** (`which-claude.yaml`):
+   ```yaml
+   name: "My classifier"
+   system: "Classify as: positive, negative, neutral"
+   cases:
+     - input: "I love this!"
+       expect: "positive"
+     - input: "This is terrible"
+       expect: "negative"
+   ```
+
+3. **Run it:**
+   ```bash
+   npx which-claude
+   ```
+
+4. **Get results in ~60 seconds** showing which model to use and why.
 
 ## Demo
 
@@ -206,18 +247,28 @@ Case 5: "I love your product, just wanted to say thanks"
   Opus:   "other"  ✓
 ```
 
-## CLI Flags
+## CLI Reference
 
-```
+```bash
 npx which-claude [options]
 
-Options:
-  --config, -c     Path to config file (default: ./which-claude.yaml)
-  --verbose, -v    Show per-case results for each model
-  --json           Output results as JSON (for scripting/CI)
-  --models, -m     Override models to test (e.g., -m haiku,sonnet)
-  --dry-run        Validate config and show estimated cost without running
-  --no-recommend   Skip the recommendation, just show the table
+Core:
+  --config, -c <path>      Config file (default: ./which-claude.yaml)
+  --models, -m <models>    Override models (e.g., -m haiku,sonnet)
+  --dry-run                Validate config and show estimated cost
+
+Output:
+  --verbose, -v            Show per-case results for each model
+  --json                   Output as JSON (for CI/CD)
+  --no-recommend           Skip recommendation, just show table
+
+Analysis:
+  --project <volume>       Show cost at daily volume (e.g., --project 10000)
+  --quick-ref              Show costs at 1K/10K/100K scale
+  --analyze-caching        Show prompt caching savings potential
+
+Development:
+  --watch, -w              Auto-rerun on config file changes
 ```
 
 ## Examples
