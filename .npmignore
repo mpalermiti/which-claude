@@ -1,0 +1,26 @@
+# Development files
+src/
+*.yaml
+!example.yaml
+demo-output.txt
+test-caching.yaml
+which-claude.yaml
+.DS_Store
+.env
+.env.*
+
+# Documentation (keep README.md and LICENSE)
+IMPLEMENTATION-PLAN.md
+ROADMAP.md
+
+# Git
+.git/
+.gitignore
+
+# Build
+tsconfig.json
+*.tsbuildinfo
+
+# IDE
+.vscode/
+.idea/

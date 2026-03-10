@@ -1,12 +1,20 @@
 {
   "name": "which-claude",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Find the right Claude model for your prompt. One command, all three models, clear recommendation.",
   "main": "dist/index.js",
   "bin": {
     "which-claude": "dist/index.js"
   },
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mpalermiti/which-claude.git"
+  },
+  "homepage": "https://github.com/mpalermiti/which-claude#readme",
+  "bugs": {
+    "url": "https://github.com/mpalermiti/which-claude/issues"
+  },
   "scripts": {
     "build": "tsc",
     "dev": "tsx src/index.ts",
