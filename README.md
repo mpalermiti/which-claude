@@ -18,7 +18,22 @@ Every Claude API builder hits the same question: "Is Haiku good enough, or do I 
 - **Startup developers** choosing the right tier before scaling
 - **API integrators** validating model quality for specific use cases
 
-**Not a replacement for [promptfoo](https://www.promptfoo.dev/)** (comprehensive LLM testing framework). Use which-claude for quick Claude model selection, use promptfoo for multi-provider evaluation and complex test suites.
+### vs. promptfoo
+
+[Promptfoo](https://www.promptfoo.dev/) is excellent for comprehensive LLM testing across 50+ providers. Different tool, different job:
+
+**Use which-claude when you:**
+- Want an answer in **30 seconds, not 30 minutes**
+- Need to decide "is Haiku good enough?" before going to production
+- Are choosing between Claude tiers (Haiku/Sonnet/Opus) specifically
+- Want zero setup — just `npx which-claude` and go
+
+**Use promptfoo when you:**
+- Need multi-provider comparison (Claude vs GPT vs Gemini)
+- Are testing complex RAG pipelines or multi-step agents
+- Want enterprise features (CI/CD, team collaboration, advanced metrics)
+
+**Time savings:** promptfoo setup takes 15-30 minutes. which-claude runs your first comparison in under 60 seconds. For the specific question "which Claude tier should I use?" — which-claude is built for speed.
 
 ## Quick Start
 
@@ -215,16 +230,19 @@ See the [examples/](./examples) directory for more configs:
 
 See [ROADMAP.md](./ROADMAP.md) for planned features and version history.
 
-## Why not use promptfoo?
+## When NOT to use which-claude
 
-[Promptfoo](https://github.com/promptfoo/promptfoo) is excellent for comprehensive LLM evaluation across 50+ providers. It's the right choice for testing complex prompts, RAG pipelines, and multi-step workflows.
+**Use promptfoo instead if you need:**
+- Multi-provider comparison (Claude vs GPT-4 vs Gemini)
+- Advanced testing (RAG pipelines, agents, multi-turn conversations)
+- Enterprise features (team dashboards, CI/CD integration, red-teaming)
 
-`which-claude` answers a narrower question: **"Which Claude tier should I pay for?"** with minimal setup. Different tools for different jobs:
+**Use which-claude if you need:**
+- Fast answer: "Is Haiku good enough or do I need Sonnet?"
+- Cost projection: "What will this cost at 10K calls/day?"
+- Zero setup: `npx which-claude` and get results in 60 seconds
 
-| Tool | Use Case | Setup Time |
-|------|----------|------------|
-| **which-claude** | Quick Claude model selection | 30 seconds |
-| **promptfoo** | Comprehensive multi-provider testing | 15+ minutes |
+Both tools are excellent. Promptfoo is a comprehensive testing platform. which-claude is a decision tool optimized for one question: which Claude tier to use.
 
 ## Contributing
 
