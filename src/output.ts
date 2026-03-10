@@ -48,41 +48,80 @@ export function renderTable(result: ComparisonResult): void {
 export function renderVerbose(result: ComparisonResult): void {
   console.log(chalk.bold(`\n${result.configName} - Detailed Results\n`));
 
+  const isExactMatch = result.caseResults[0].expected !== undefined;
+
   for (let i = 0; i < result.caseResults.length; i++) {
     const caseResult = result.caseResults[i];
-    console.log(chalk.bold(`Case ${i + 1}:`), caseResult.input.slice(0, 80));
+    const inputPreview = caseResult.input.length > 80
+      ? caseResult.input.slice(0, 80) + '...'
+      : caseResult.input;
+
+    console.log(chalk.bold(`\nCase ${i + 1}:`), chalk.dim(inputPreview));
+
+    if (caseResult.expected) {
+      console.log(chalk.dim(`  Expected: "${caseResult.expected}"`));
+    }
+
+    console.log();
 
     for (const modelResult of caseResult.results) {
       const score = caseResult.scores.get(modelResult.model);
-      const isCorrect = caseResult.expected
+      const isCorrect = isExactMatch
         ? score === 1
         : (score ?? 0) >= 4;
 
       const icon = isCorrect ? chalk.green('✓') : chalk.red('✗');
-      const scoreText = caseResult.expected
+      const modelName = chalk.cyan(modelResult.model.padEnd(7));
+
+      // Truncate long outputs intelligently
+      let output = modelResult.output;
+      if (output.length > 100) {
+        output = output.slice(0, 97) + '...';
+      }
+
+      // Color-code the output based on correctness
+      const outputText = isCorrect
+        ? chalk.green(`"${output}"`)
+        : chalk.red(`"${output}"`);
+
+      const scoreText = isExactMatch
         ? ''
-        : ` (${score}/5)`;
+        : chalk.dim(` [${score}/5]`);
 
-      console.log(
-        `  ${modelResult.model.padEnd(8)} "${modelResult.output.slice(0, 60)}" ${icon}${scoreText}`
-      );
+      const latency = chalk.dim(`${modelResult.latency}ms`);
+
+      console.log(`  ${icon} ${modelName} ${outputText} ${scoreText} ${latency}`);
     }
-
-    console.log();
   }
+
+  console.log();
 }
 
 export function renderJson(result: ComparisonResult): void {
+  const isExactMatch = result.summaries[0].accuracy !== undefined;
+
   const output = {
     name: result.configName,
-    cases: result.caseResults.length,
+    totalCases: result.caseResults.length,
+    evaluationType: isExactMatch ? 'exact_match' : 'judge_scored',
     summaries: result.summaries.map((s) => ({
       model: s.model,
-      accuracy: s.accuracy,
-      quality: s.quality,
-      avgLatency: Math.round(s.avgLatency),
+      score: s.accuracy !== undefined ? s.accuracy : s.quality,
+      scoreType: s.accuracy !== undefined ? 'accuracy' : 'quality',
+      avgLatencyMs: Math.round(s.avgLatency),
       totalTokens: s.totalTokens,
-      costPer1k: s.costPer1k,
+      costPer1k: parseFloat(s.costPer1k.toFixed(4)),
+    })),
+    cases: result.caseResults.map((c) => ({
+      index: c.caseIndex,
+      input: c.input.slice(0, 100) + (c.input.length > 100 ? '...' : ''),
+      expected: c.expected,
+      results: c.results.map((r) => ({
+        model: r.model,
+        output: r.output.slice(0, 200),
+        score: c.scores.get(r.model),
+        latencyMs: r.latency,
+      })),
     })),
     recommendation: result.recommendation,
   };
@@ -93,14 +132,41 @@ export function renderJson(result: ComparisonResult): void {
 export function renderDryRun(
   configName: string,
   numCases: number,
-  models: string[]
+  models: string[],
+  systemPrompt: string,
+  avgInputLength: number
 ): void {
   console.log(chalk.bold(`\n🧪 Dry run: ${configName}\n`));
   console.log(`Cases: ${numCases}`);
   console.log(`Models: ${models.join(', ')}`);
   console.log(`Total API calls: ${numCases * models.length}`);
-  console.log(
-    chalk.yellow('\nNote: Estimated cost depends on prompt/response length.')
-  );
-  console.log(chalk.dim('Run without --dry-run to execute.\n'));
+
+  // Rough token estimate (4 chars ≈ 1 token)
+  const systemTokens = Math.ceil(systemPrompt.length / 4);
+  const avgInputTokens = Math.ceil(avgInputLength / 4);
+  const estimatedOutputTokens = 100; // Conservative estimate for structured outputs
+
+  // Calculate cost per model
+  console.log(chalk.dim('\nEstimated cost per model (assuming ~100 token outputs):'));
+
+  const PRICING: Record<string, { in: number; out: number }> = {
+    haiku: { in: 0.80, out: 4.00 },
+    sonnet: { in: 3.00, out: 15.00 },
+    opus: { in: 15.00, out: 75.00 },
+  };
+
+  for (const model of models) {
+    const pricing = PRICING[model];
+    if (!pricing) continue;
+
+    const inputCost = ((systemTokens + avgInputTokens) / 1_000_000) * pricing.in * numCases;
+    const outputCost = (estimatedOutputTokens / 1_000_000) * pricing.out * numCases;
+    const totalCost = inputCost + outputCost;
+
+    console.log(
+      chalk.dim(`  ${model.padEnd(8)} ~$${totalCost.toFixed(4)} (${(systemTokens + avgInputTokens) * numCases} in + ${estimatedOutputTokens * numCases} out tokens)`)
+    );
+  }
+
+  console.log(chalk.dim('\nRun without --dry-run to execute.\n'));
 }

@@ -53,9 +53,18 @@ export interface ModelSummary {
   thinking?: boolean;
 }
 
+export interface ThinkingComparison {
+  model: ModelName;
+  withoutThinking: number; // avg score
+  withThinking: number; // avg score
+  costDelta: number; // additional cost per 1k calls
+  improvement: number; // percentage improvement
+}
+
 export interface ComparisonResult {
   configName: string;
   caseResults: CaseResult[];
   summaries: ModelSummary[];
   recommendation?: string;
+  thinkingAnalysis?: ThinkingComparison[];
 }

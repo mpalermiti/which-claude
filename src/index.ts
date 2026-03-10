@@ -2,12 +2,13 @@
 
 // CLI entry point for which-claude
 
+import 'dotenv/config';
 import { Command } from 'commander';
 import Anthropic from '@anthropic-ai/sdk';
 import chalk from 'chalk';
 import { loadConfig, getDefaultOptions } from './config.js';
-import { runAllCases } from './runner.js';
-import { buildSummaries, generateRecommendation } from './recommender.js';
+import { runAllCases, runAllCasesWithThinkingComparison } from './runner.js';
+import { buildSummaries, generateRecommendation, analyzeThinkingMode, generateThinkingRecommendation } from './recommender.js';
 import { renderTable, renderVerbose, renderJson, renderDryRun } from './output.js';
 import { ModelName } from './types.js';
 
@@ -40,35 +41,74 @@ async function main() {
 
     // Dry run mode
     if (options.dryRun) {
-      renderDryRun(config.name, config.cases.length, modelList);
+      const avgInputLength =
+        config.cases.reduce((sum, c) => sum + c.input.length, 0) / config.cases.length;
+      renderDryRun(config.name, config.cases.length, modelList, config.system, avgInputLength);
       return;
     }
 
     // Check for API key
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) {
-      console.error(
-        chalk.red('Error: ANTHROPIC_API_KEY environment variable not set')
-      );
+      console.error(chalk.red('\n✗ Error: ANTHROPIC_API_KEY not found\n'));
+      console.error(chalk.dim('Set your API key:'));
+      console.error(chalk.dim('  export ANTHROPIC_API_KEY=sk-ant-...\n'));
+      console.error(chalk.dim('Or create a .env file:'));
+      console.error(chalk.dim('  echo "ANTHROPIC_API_KEY=sk-ant-..." > .env\n'));
+      console.error(chalk.dim('Get your key: https://console.anthropic.com/settings/keys\n'));
       process.exit(1);
     }
 
     // Initialize Anthropic client
     const client = new Anthropic({ apiKey });
 
-    // Run all test cases
-    console.log(chalk.dim(`Running ${config.cases.length} cases across ${modelList.length} models...\n`));
+    // Determine if we should run thinking mode comparison
+    const thinkingMode = config.options?.thinking || 'auto';
+    const shouldTestThinking =
+      thinkingMode === 'auto' && (modelList.includes('sonnet') || modelList.includes('opus'));
 
-    const caseResults = await runAllCases(client, {
-      ...config,
-      options: {
-        ...config.options,
-        models: modelList,
-      },
-    });
+    let caseResults;
+    let thinkingAnalysis;
+    let thinkingRecommendation;
 
-    // Build summaries
-    const summaries = buildSummaries(caseResults, modelList);
+    if (shouldTestThinking) {
+      // Run with thinking mode comparison
+      console.log(chalk.dim(`Running ${config.cases.length} cases with thinking mode comparison...\n`));
+
+      const { withThinking, withoutThinking } = await runAllCasesWithThinkingComparison(
+        client,
+        {
+          ...config,
+          options: {
+            ...config.options,
+            models: modelList,
+          },
+        }
+      );
+
+      // Use the results with thinking for main comparison
+      caseResults = withThinking;
+
+      // Analyze thinking mode impact
+      thinkingAnalysis = analyzeThinkingMode(withThinking, withoutThinking);
+      thinkingRecommendation = generateThinkingRecommendation(thinkingAnalysis);
+    } else {
+      // Run normal test
+      console.log(chalk.dim(`Running ${config.cases.length} cases across ${modelList.length} models...\n`));
+
+      caseResults = await runAllCases(client, {
+        ...config,
+        options: {
+          ...config.options,
+          models: modelList,
+        },
+      });
+    }
+
+    // Build summaries (only from main run models, not thinking comparison)
+    const summaries = buildSummaries(caseResults, modelList.filter(m =>
+      caseResults[0]?.results.some(r => r.model === m)
+    ));
 
     // Generate recommendation
     const recommendation = options.recommend !== false
@@ -80,6 +120,7 @@ async function main() {
       caseResults,
       summaries,
       recommendation,
+      thinkingAnalysis,
     };
 
     // Output
@@ -88,14 +129,37 @@ async function main() {
     } else if (options.verbose) {
       renderVerbose(result);
       renderTable(result);
+      if (thinkingRecommendation) {
+        console.log(thinkingRecommendation + '\n');
+      }
     } else {
       renderTable(result);
+      if (thinkingRecommendation) {
+        console.log(thinkingRecommendation + '\n');
+      }
     }
   } catch (error) {
     if (error instanceof Error) {
-      console.error(chalk.red(`Error: ${error.message}`));
+      // Handle Anthropic API errors with helpful context
+      if (error.message.includes('credit balance is too low')) {
+        console.error(chalk.red('\n✗ Error: Insufficient API credits\n'));
+        console.error(chalk.dim('Add credits: https://console.anthropic.com/settings/billing\n'));
+      } else if (error.message.includes('401') || error.message.includes('authentication')) {
+        console.error(chalk.red('\n✗ Error: Invalid API key\n'));
+        console.error(chalk.dim('Check your ANTHROPIC_API_KEY is correct'));
+        console.error(chalk.dim('Get a new key: https://console.anthropic.com/settings/keys\n'));
+      } else if (error.message.includes('rate_limit')) {
+        console.error(chalk.red('\n✗ Error: Rate limit exceeded\n'));
+        console.error(chalk.dim('Wait a moment and try again, or reduce the number of test cases\n'));
+      } else if (error.message.includes('Config file not found')) {
+        console.error(chalk.red(`\n✗ Error: ${error.message}\n`));
+        console.error(chalk.dim('Create a which-claude.yaml file or specify --config path/to/config.yaml'));
+        console.error(chalk.dim('See examples: https://github.com/mpalermiti/which-claude/tree/main/examples\n'));
+      } else {
+        console.error(chalk.red(`\n✗ Error: ${error.message}\n`));
+      }
     } else {
-      console.error(chalk.red('Unknown error occurred'));
+      console.error(chalk.red('\n✗ Unknown error occurred\n'));
     }
     process.exit(1);
   }

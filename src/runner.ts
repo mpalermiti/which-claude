@@ -86,19 +86,22 @@ export async function runAllCases(
     ? 'sonnet'
     : 'haiku';
 
-  // Run each case
+  // Determine if we should test thinking mode
+  const shouldTestThinking = opts.thinking === 'auto' &&
+    (opts.models.includes('sonnet') || opts.models.includes('opus'));
+
+  // Determine default thinking mode for main run
+  const defaultThinking = opts.thinking === 'on' || shouldTestThinking;
+
+  // Run each case with default settings
   for (let i = 0; i < config.cases.length; i++) {
     const testCase = config.cases[i];
-
-    // Determine thinking mode for this run
-    const useThinking = opts.thinking === 'on' ||
-                        (opts.thinking === 'auto' && (opts.models.includes('sonnet') || opts.models.includes('opus')));
 
     const results = await runCase(client, config, testCase.input, {
       models: opts.models,
       temperature: opts.temperature,
       max_tokens: opts.max_tokens,
-      thinking: useThinking,
+      thinking: defaultThinking,
     });
 
     const scores = await evaluateCase(client, testCase, results, judgeModel);
@@ -112,8 +115,86 @@ export async function runAllCases(
     });
   }
 
-  // If thinking is 'auto', also test without thinking on sonnet/opus
-  // and compare results (to be implemented in a future iteration)
-
   return caseResults;
+}
+
+// Run cases with thinking mode comparison
+export async function runAllCasesWithThinkingComparison(
+  client: Anthropic,
+  config: Config
+): Promise<{ withThinking: CaseResult[]; withoutThinking: CaseResult[] }> {
+  const defaults = getDefaultOptions();
+  const opts = { ...defaults, ...config.options };
+
+  // Filter to only models that support thinking
+  const thinkingModels = opts.models.filter((m) => m === 'sonnet' || m === 'opus');
+
+  if (thinkingModels.length === 0) {
+    // No models support thinking, return empty comparison
+    const main = await runAllCases(client, config);
+    return { withThinking: main, withoutThinking: [] };
+  }
+
+  // Determine judge model
+  const judgeModel: ModelName = opts.models.includes('opus')
+    ? 'opus'
+    : opts.models.includes('sonnet')
+    ? 'sonnet'
+    : 'haiku';
+
+  const withThinking: CaseResult[] = [];
+  const withoutThinking: CaseResult[] = [];
+
+  // Run each case twice - with and without thinking
+  for (let i = 0; i < config.cases.length; i++) {
+    const testCase = config.cases[i];
+
+    // Run with thinking
+    const resultsWithThinking = await runCase(client, config, testCase.input, {
+      models: thinkingModels,
+      temperature: opts.temperature,
+      max_tokens: opts.max_tokens,
+      thinking: true,
+    });
+
+    const scoresWithThinking = await evaluateCase(
+      client,
+      testCase,
+      resultsWithThinking,
+      judgeModel
+    );
+
+    withThinking.push({
+      caseIndex: i,
+      input: testCase.input,
+      expected: testCase.expect,
+      results: resultsWithThinking,
+      scores: scoresWithThinking,
+    });
+
+    // Run without thinking
+    const resultsWithoutThinking = await runCase(client, config, testCase.input, {
+      models: thinkingModels,
+      temperature: opts.temperature,
+      max_tokens: opts.max_tokens,
+      thinking: false,
+    });
+
+    const scoresWithoutThinking = await evaluateCase(
+      client,
+      testCase,
+      resultsWithoutThinking,
+      judgeModel
+    );
+
+    withoutThinking.push({
+      caseIndex: i,
+      input: testCase.input,
+      expected: testCase.expect,
+      results: resultsWithoutThinking,
+      scores: scoresWithoutThinking,
+    });
+  }
+
+  return { withThinking, withoutThinking };
 }

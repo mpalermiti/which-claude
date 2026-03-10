@@ -1,7 +1,7 @@
 // Recommendation logic based on results
 
-import { ModelSummary, CaseResult, ModelName } from './types.js';
-import { calculateCostPer1k } from './pricing.js';
+import { ModelSummary, CaseResult, ModelName, ThinkingComparison } from './types.js';
+import { calculateCostPer1k, PRICING } from './pricing.js';
 
 export function buildSummaries(
   caseResults: CaseResult[],
@@ -92,4 +92,103 @@ export function generateRecommendation(summaries: ModelSummary[]): string {
 
   // Only top model succeeds
   return `🔴 Use ${best.model.toUpperCase()}\n   Only ${best.model} meets quality requirements (${bestScore.toFixed(1)}${isExactMatch ? '/' + summaries.length : '/5'}).\n   ${worst.model.charAt(0).toUpperCase() + worst.model.slice(1)} scored ${worstScore.toFixed(1)} — insufficient for this task.`;
+}
+
+export function analyzeThinkingMode(
+  withThinking: CaseResult[],
+  withoutThinking: CaseResult[]
+): ThinkingComparison[] {
+  const comparisons: ThinkingComparison[] = [];
+
+  // Get unique models from the results
+  const models = new Set<ModelName>();
+  withThinking[0]?.results.forEach((r) => models.add(r.model));
+
+  for (const model of models) {
+    let totalScoreWithThinking = 0;
+    let totalScoreWithoutThinking = 0;
+    let totalInputTokensWith = 0;
+    let totalOutputTokensWith = 0;
+    let totalInputTokensWithout = 0;
+    let totalOutputTokensWithout = 0;
+
+    // Calculate average scores and costs
+    for (let i = 0; i < withThinking.length; i++) {
+      const scoreWith = withThinking[i].scores.get(model) || 0;
+      const scoreWithout = withoutThinking[i].scores.get(model) || 0;
+
+      totalScoreWithThinking += scoreWith;
+      totalScoreWithoutThinking += scoreWithout;
+
+      const resultWith = withThinking[i].results.find((r) => r.model === model);
+      const resultWithout = withoutThinking[i].results.find((r) => r.model === model);
+
+      if (resultWith) {
+        totalInputTokensWith += resultWith.inputTokens;
+        totalOutputTokensWith += resultWith.outputTokens;
+      }
+
+      if (resultWithout) {
+        totalInputTokensWithout += resultWithout.inputTokens;
+        totalOutputTokensWithout += resultWithout.outputTokens;
+      }
+    }
+
+    const avgScoreWith = totalScoreWithThinking / withThinking.length;
+    const avgScoreWithout = totalScoreWithoutThinking / withoutThinking.length;
+
+    const costWith = calculateCostPer1k(
+      model,
+      totalInputTokensWith,
+      totalOutputTokensWith,
+      withThinking.length
+    );
+
+    const costWithout = calculateCostPer1k(
+      model,
+      totalInputTokensWithout,
+      totalOutputTokensWithout,
+      withoutThinking.length
+    );
+
+    const costDelta = costWith - costWithout;
+    const improvement = ((avgScoreWith - avgScoreWithout) / avgScoreWithout) * 100;
+
+    comparisons.push({
+      model,
+      withoutThinking: avgScoreWithout,
+      withThinking: avgScoreWith,
+      costDelta,
+      improvement,
+    });
+  }
+
+  return comparisons;
+}
+
+export function generateThinkingRecommendation(
+  comparisons: ThinkingComparison[]
+): string | undefined {
+  // Find models where thinking made a significant difference
+  const significant = comparisons.filter(
+    (c) => c.withThinking - c.withoutThinking > 0.3 && c.improvement > 5
+  );
+
+  if (significant.length === 0) {
+    return undefined;
+  }
+
+  const lines: string[] = ['💡 Thinking mode analysis:'];
+
+  for (const comp of significant) {
+    const modelName = comp.model.charAt(0).toUpperCase() + comp.model.slice(1);
+    lines.push(
+      `   ${modelName}: ${comp.withoutThinking.toFixed(1)} → ${comp.withThinking.toFixed(1)} (+${comp.improvement.toFixed(0)}%) with thinking`
+    );
+    lines.push(`   Cost increase: +$${comp.costDelta.toFixed(4)} per 1K calls`);
+  }
+
+  lines.push(`   Consider enabling thinking for improved quality.`);
+
+  return lines.join('\n');
 }

@@ -2,7 +2,7 @@
 
 Find the right Claude model for your prompt. One command, all three models, clear recommendation.
 
-```
+```bash
 npx which-claude
 ```
 
@@ -11,6 +11,14 @@ npx which-claude
 Every Claude API builder hits the same question: "Is Haiku good enough, or do I need Sonnet?" The answer is always "test it" — but nobody does because the setup is disproportionate to the question.
 
 `which-claude` makes model selection empirical. Define your prompt and a few test cases. Get a comparison table with a recommendation in seconds.
+
+## Who This Is For
+
+- **Indie builders** optimizing API costs for side projects
+- **Startup developers** choosing the right tier before scaling
+- **API integrators** validating model quality for specific use cases
+
+**Not a replacement for [promptfoo](https://www.promptfoo.dev/)** (comprehensive LLM testing framework). Use which-claude for quick Claude model selection, use promptfoo for multi-provider evaluation and complex test suites.
 
 ## Quick Start
 
@@ -176,6 +184,31 @@ Options:
   --dry-run        Validate config and show estimated cost without running
   --no-recommend   Skip the recommendation, just show the table
 ```
+
+## Examples
+
+See the [examples/](./examples) directory for more configs:
+- [sentiment.yaml](./examples/sentiment.yaml) — Product review classification
+- [summarization.yaml](./examples/summarization.yaml) — Meeting notes with judge scoring
+
+## Roadmap
+
+See [ROADMAP.md](./ROADMAP.md) for planned features and version history.
+
+## Why not use promptfoo?
+
+[Promptfoo](https://github.com/promptfoo/promptfoo) is excellent for comprehensive LLM evaluation across 50+ providers. It's the right choice for testing complex prompts, RAG pipelines, and multi-step workflows.
+
+`which-claude` answers a narrower question: **"Which Claude tier should I pay for?"** with minimal setup. Different tools for different jobs:
+
+| Tool | Use Case | Setup Time |
+|------|----------|------------|
+| **which-claude** | Quick Claude model selection | 30 seconds |
+| **promptfoo** | Comprehensive multi-provider testing | 15+ minutes |
+
+## Contributing
+
+PRs welcome. Keep the core simple — the value is in opinionated defaults, not feature count.
 
 ## License
 
