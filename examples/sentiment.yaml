@@ -1,0 +1,23 @@
+# Sentiment analysis example
+
+name: "Product review sentiment"
+
+system: |
+  Classify the sentiment of the following product review as: positive, negative, or neutral
+
+cases:
+  - input: "This product changed my life! Best purchase I've ever made."
+    expect: "positive"
+
+  - input: "It's okay. Does what it's supposed to do, nothing special."
+    expect: "neutral"
+
+  - input: "Terrible quality. Broke after one week. Waste of money."
+    expect: "negative"
+
+  - input: "Amazing build quality and fast shipping!"
+    expect: "positive"
+
+options:
+  models: [haiku, sonnet, opus]
+  temperature: 0

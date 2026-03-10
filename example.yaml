@@ -1,0 +1,23 @@
+# Example which-claude config
+
+name: "Support ticket classifier"
+
+system: |
+  You are a support ticket classifier. Respond with exactly one label:
+  account_access, billing, technical, feature_request, other
+
+cases:
+  - input: "I can't log in to my account"
+    expect: "account_access"
+
+  - input: "How do I upgrade my plan?"
+    expect: "billing"
+
+  - input: "Your API is returning 500 errors on the /users endpoint"
+    expect: "technical"
+
+  - input: "Can you add dark mode?"
+    expect: "feature_request"
+
+  - input: "I love your product, just wanted to say thanks"
+    expect: "other"

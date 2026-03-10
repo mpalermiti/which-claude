@@ -1,0 +1,32 @@
+# Generative task with judge scoring
+
+name: "Meeting notes summarizer"
+
+system: |
+  Summarize the following meeting notes in 2-3 concise sentences.
+  Focus on key decisions and action items.
+
+cases:
+  - input: |
+      Team discussed Q2 roadmap. Sarah will lead the mobile app redesign.
+      Launch target is June 15. Mike raised concerns about API stability -
+      we'll add more integration tests before the release. Budget approved
+      for two additional contractors.
+    criteria: "Should mention June 15 launch, Sarah leading redesign, and API testing"
+
+  - input: |
+      Client wants to add SSO integration to the enterprise plan. Legal
+      is reviewing the data processing agreement. Timeline: 2-3 weeks for
+      contract, then 4-week sprint for implementation. Emily will be the
+      technical lead.
+    criteria: "Should mention SSO feature, contract review, and Emily as lead"
+
+  - input: |
+      Weekly standup - everyone reported green status. John fixed the
+      memory leak in the worker process. No blockers. Next sprint planning
+      is Wednesday 2pm.
+    criteria: "Should mention memory leak fix and upcoming sprint planning"
+
+options:
+  models: [haiku, sonnet, opus]
+  temperature: 0.3
