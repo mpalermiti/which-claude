@@ -30,10 +30,16 @@ export interface CacheAnalysis {
   savingsPerCall: number;
 }
 
+export interface TokenBreakdown {
+  model: ModelName;
+  avgInputTokens: number;
+  avgOutputTokens: number;
+}
+
 export function analyzeCaching(
   summaries: ModelSummary[],
   systemPromptTokens: number,
-  numCases: number
+  tokenBreakdowns: TokenBreakdown[]
 ): CacheAnalysis[] {
   const analyses: CacheAnalysis[] = [];
 
@@ -43,14 +49,15 @@ export function analyzeCaching(
     // Without cache: all input tokens charged at full price
     const costWithoutCache = summary.costPer1k;
 
-    // Estimate input/output token breakdown
-    // We only have totalTokens, so estimate 60% input / 40% output split
-    const estimatedInputTokens = summary.totalTokens * 0.6;
-    const estimatedOutputTokens = summary.totalTokens * 0.4;
+    // Get actual token breakdown for this model
+    const breakdown = tokenBreakdowns.find((b) => b.model === summary.model);
+    if (!breakdown) {
+      console.warn(`No token breakdown for ${summary.model}, skipping cache analysis`);
+      continue;
+    }
 
-    // Tokens per call
-    const inputTokensPerCall = estimatedInputTokens / numCases;
-    const outputTokensPerCall = estimatedOutputTokens / numCases;
+    const inputTokensPerCall = breakdown.avgInputTokens;
+    const outputTokensPerCall = breakdown.avgOutputTokens;
 
     // Non-cached input tokens (everything except system prompt)
     const nonCachedInputTokens = Math.max(0, inputTokensPerCall - systemPromptTokens);

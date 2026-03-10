@@ -199,10 +199,34 @@ async function runTests() {
     // Caching analysis if requested
     if (options.analyzeCaching) {
       const systemPromptTokens = estimateSystemPromptTokens(config.system);
+
+      // Calculate actual token breakdowns from results
+      const tokenBreakdowns = result.summaries.map((summary) => {
+        // Get actual input/output from case results for this model
+        let totalInput = 0;
+        let totalOutput = 0;
+        let count = 0;
+
+        for (const caseResult of result.caseResults) {
+          const modelResult = caseResult.results.find((r) => r.model === summary.model);
+          if (modelResult) {
+            totalInput += modelResult.inputTokens;
+            totalOutput += modelResult.outputTokens;
+            count++;
+          }
+        }
+
+        return {
+          model: summary.model,
+          avgInputTokens: totalInput / count,
+          avgOutputTokens: totalOutput / count,
+        };
+      });
+
       const cacheAnalyses = analyzeCaching(
         result.summaries,
         systemPromptTokens,
-        config.cases.length
+        tokenBreakdowns
       );
       renderCachingAnalysis(cacheAnalyses, config.system);
     }
