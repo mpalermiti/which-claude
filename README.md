@@ -85,8 +85,6 @@ which-claude · Email tone classifier · 3 cases
 
 **Key insight:** Both models perform perfectly, but Haiku is 74% cheaper!
 
-See [DEMO.md](./DEMO.md) for more examples including cost projection, thinking mode analysis, and caching recommendations.
-
 ## Config Format
 
 ### Structured output (classification, extraction, JSON)
