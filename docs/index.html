@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>which-claude · Find the right Claude model for your prompt</title>
+  <meta name="description" content="One command, all three models, clear recommendation. Stop guessing which Claude tier to use.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --surface: #1a1a1a;
+      --text: #e0e0e0;
+      --text-dim: #888888;
+      --accent: #00ff88;
+      --accent-dim: #00cc6a;
+      --border: #2a2a2a;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    /* Header */
+    header {
+      padding: 2rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .logo::before {
+      content: '$ ';
+      color: var(--text-dim);
+    }
+
+    /* Hero */
+    .hero {
+      padding: 8rem 0 6rem;
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 3.5rem;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 1.5rem;
+      letter-spacing: -0.02em;
+    }
+
+    .morph {
+      color: var(--accent);
+      display: inline-block;
+      min-width: 320px;
+      text-align: left;
+    }
+
+    .hero p {
+      font-size: 1.25rem;
+      color: var(--text-dim);
+      max-width: 600px;
+      margin: 0 auto 3rem;
+    }
+
+    .cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 1rem 2rem;
+      background: var(--accent);
+      color: var(--bg);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.125rem;
+      font-weight: 600;
+      text-decoration: none;
+      border-radius: 6px;
+      transition: background 0.2s;
+    }
+
+    .cta:hover {
+      background: var(--accent-dim);
+    }
+
+    /* Problem */
+    .problem {
+      padding: 6rem 0;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .problem h2 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 2rem;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .problem-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+      margin-top: 3rem;
+    }
+
+    .problem-item {
+      padding: 2rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    .problem-item h3 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.25rem;
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+    }
+
+    .problem-item p {
+      color: var(--text-dim);
+      font-size: 0.95rem;
+    }
+
+    /* Demo */
+    .demo {
+      padding: 6rem 0;
+    }
+
+    .demo h2 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 2rem;
+      margin-bottom: 3rem;
+      text-align: center;
+    }
+
+    .terminal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 2rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.875rem;
+      overflow-x: auto;
+    }
+
+    .terminal-header {
+      color: var(--text-dim);
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .terminal-prompt {
+      color: var(--accent);
+    }
+
+    .terminal-output {
+      opacity: 0;
+      animation: fadeIn 0.5s forwards;
+      animation-delay: 1s;
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+
+    .terminal-table {
+      margin: 1rem 0;
+      white-space: pre;
+      line-height: 1.8;
+    }
+
+    .terminal-recommendation {
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      color: var(--accent);
+    }
+
+    /* Quick Start */
+    .quick-start {
+      padding: 6rem 0;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .quick-start h2 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 2rem;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .install-box {
+      max-width: 600px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .install-code {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.125rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .copy-btn {
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: var(--accent-dim);
+    }
+
+    .copy-btn.copied {
+      background: var(--text-dim);
+    }
+
+    /* Features */
+    .features {
+      padding: 6rem 0;
+    }
+
+    .features h2 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 2rem;
+      margin-bottom: 3rem;
+      text-align: center;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2rem;
+    }
+
+    .feature {
+      padding: 2rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    .feature-icon {
+      color: var(--accent);
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .feature h3 {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.125rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .feature p {
+      color: var(--text-dim);
+      font-size: 0.95rem;
+    }
+
+    /* Footer */
+    footer {
+      padding: 4rem 0 2rem;
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 2rem;
+      justify-content: center;
+      margin-bottom: 2rem;
+    }
+
+    .footer-links a {
+      color: var(--text-dim);
+      text-decoration: none;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.95rem;
+      transition: color 0.2s;
+    }
+
+    .footer-links a:hover {
+      color: var(--accent);
+    }
+
+    .footer-credit {
+      color: var(--text-dim);
+      font-size: 0.875rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hero h1 {
+        font-size: 2.5rem;
+      }
+
+      .morph {
+        min-width: 240px;
+      }
+
+      .problem-grid,
+      .features-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .terminal {
+        font-size: 0.75rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <a href="/" class="logo">which-claude</a>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="container">
+      <h1>
+        <span class="morph">Stop guessing</span><br>
+        which Claude model to use
+      </h1>
+      <p>One command, all three models, clear recommendation. Test your actual prompt and get results in 60 seconds.</p>
+      <a href="https://github.com/mpalermiti/which-claude" class="cta">
+        <span>View on GitHub</span>
+        <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+          <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+        </svg>
+      </a>
+    </div>
+  </section>
+
+  <section class="problem">
+    <div class="container">
+      <h2>Choosing the wrong tier costs you</h2>
+      <div class="problem-grid">
+        <div class="problem-item">
+          <h3>Too expensive</h3>
+          <p>Opus for simple tasks → $10K+/year wasted on unnecessary model power</p>
+        </div>
+        <div class="problem-item">
+          <h3>Too cheap</h3>
+          <p>Haiku for complex logic → poor user experience, lost customers</p>
+        </div>
+        <div class="problem-item">
+          <h3>Too slow</h3>
+          <p>Manual testing → hours of dev time guessing which model works best</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="demo">
+    <div class="container">
+      <h2>See the difference in 60 seconds</h2>
+      <div class="terminal">
+        <div class="terminal-header">
+          <span class="terminal-prompt">$ </span>npx which-claude
+        </div>
+        <div class="terminal-output">
+          <div class="terminal-table">which-claude · Email tone classifier · 3 cases
+
+┌────────┬─────────┬────────┬────────┬───────────┐
+│ Model  │ Quality │ Avg ms │ Tokens │ Cost / 1K │
+├────────┼─────────┼────────┼────────┼───────────┤
+│ Haiku  │   3/3   │   507  │  181   │  $0.061   │
+│ Sonnet │   3/3   │  1161  │  184   │  $0.232   │
+└────────┴─────────┴────────┴────────┴───────────┘</div>
+          <div class="terminal-recommendation">
+✅ Use HAIKU
+   All models scored 3/3. Haiku saves 74% vs Sonnet.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="quick-start">
+    <div class="container">
+      <h2>Get started</h2>
+      <div class="install-box">
+        <div class="install-code">
+          <span>npx which-claude</span>
+          <button class="copy-btn" onclick="copyCommand()">Copy</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="features">
+    <div class="container">
+      <h2>Why which-claude?</h2>
+      <div class="features-grid">
+        <div class="feature">
+          <div class="feature-icon">⚡</div>
+          <h3>Empirical comparison</h3>
+          <p>Test your actual prompt on Haiku, Sonnet, and Opus. No guessing, just data.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">💰</div>
+          <h3>Cost analysis</h3>
+          <p>See exactly what you'll pay at scale. Project costs at 1K, 10K, 100K calls/day.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🧠</div>
+          <h3>Thinking mode detection</h3>
+          <p>Know if extended thinking improves quality and whether the cost increase is worth it.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📦</div>
+          <h3>Prompt caching</h3>
+          <p>Identify 40-60% savings opportunities with prompt caching recommendations.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">👀</div>
+          <h3>Watch mode</h3>
+          <p>Auto-rerun on config changes during iteration. Fast feedback loop.</p>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🚀</div>
+          <h3>Zero setup</h3>
+          <p>npx which-claude, no installation required. Get your first results in under 60 seconds.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="container">
+      <div class="footer-links">
+        <a href="https://github.com/mpalermiti/which-claude">GitHub</a>
+        <a href="https://github.com/mpalermiti/which-claude#readme">Documentation</a>
+        <a href="https://github.com/mpalermiti/which-claude/issues">Issues</a>
+      </div>
+      <p class="footer-credit">Built by <a href="https://github.com/mpalermiti" style="color: var(--accent); text-decoration: none;">Michael Palermiti</a></p>
+    </div>
+  </footer>
+
+  <script>
+    // Morphing text animation
+    const phrases = ['Stop guessing', 'Test all three', 'Save thousands'];
+    let currentPhrase = 0;
+    const morphElement = document.querySelector('.morph');
+
+    function morphText() {
+      morphElement.style.opacity = '0';
+      setTimeout(() => {
+        currentPhrase = (currentPhrase + 1) % phrases.length;
+        morphElement.textContent = phrases[currentPhrase];
+        morphElement.style.opacity = '1';
+      }, 300);
+    }
+
+    morphElement.style.transition = 'opacity 0.3s ease';
+    setInterval(morphText, 3000);
+
+    // Copy command
+    function copyCommand() {
+      const btn = document.querySelector('.copy-btn');
+      navigator.clipboard.writeText('npx which-claude');
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = 'Copy';
+        btn.classList.remove('copied');
+      }, 2000);
+    }
+  </script>
+</body>
+</html>
