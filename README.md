@@ -26,29 +26,6 @@ Choosing the wrong Claude tier costs you:
 - ✅ **Watch mode** — Auto-rerun on config changes during iteration
 - ✅ **Zero setup** — `npx which-claude`, no installation required
 
-## Who This Is For
-
-- **Indie builders** optimizing API costs for side projects
-- **Startup developers** choosing the right tier before scaling
-- **API integrators** validating model quality for specific use cases
-
-### vs. promptfoo
-
-[Promptfoo](https://www.promptfoo.dev/) is excellent for comprehensive LLM testing across 50+ providers. Different tool, different job:
-
-**Use which-claude when you:**
-- Want an answer in **30 seconds, not 30 minutes**
-- Need to decide "is Haiku good enough?" before going to production
-- Are choosing between Claude tiers (Haiku/Sonnet/Opus) specifically
-- Want zero setup — just `npx which-claude` and go
-
-**Use promptfoo when you:**
-- Need multi-provider comparison (Claude vs GPT vs Gemini)
-- Are testing complex RAG pipelines or multi-step agents
-- Want enterprise features (CI/CD, team collaboration, advanced metrics)
-
-**Time savings:** promptfoo setup takes 15-30 minutes. which-claude runs your first comparison in under 60 seconds. For the specific question "which Claude tier should I use?" — which-claude is built for speed.
-
 ## Installation
 
 **No installation needed** — run via npx:
@@ -88,8 +65,6 @@ which-claude
    npx which-claude
    ```
 
-4. **Get results in ~60 seconds** showing which model to use and why.
-
 ## Demo
 
 ```
@@ -105,6 +80,8 @@ which-claude · Email tone classifier · 3 cases
 ✅ Use HAIKU
    All models scored 3/3. Haiku saves 74% vs Sonnet.
 ```
+
+**Cost / 1K** = cost per 1,000 API calls at this token usage.
 
 **Key insight:** Both models perform perfectly, but Haiku is 74% cheaper!
 
