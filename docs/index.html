@@ -5,10 +5,54 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>which-claude · Find the right Claude model for your prompt</title>
   <meta name="description" content="One command, all three models, clear recommendation. Stop guessing which Claude tier to use.">
+  <link rel="canonical" href="https://mpalermiti.github.io/which-claude/">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23ffffff'/><circle cx='25' cy='50' r='8' fill='%2310b981'/><circle cx='50' cy='50' r='8' fill='%2310b981'/><circle cx='75' cy='50' r='8' fill='%2310b981'/></svg>">
+
+  <!-- Open Graph / Social Media -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://mpalermiti.github.io/which-claude/">
+  <meta property="og:title" content="which-claude · Find the right Claude model for your prompt">
+  <meta property="og:description" content="One command, all three models, clear recommendation. Test your prompt on Haiku, Sonnet, and Opus in 60 seconds.">
+  <meta property="og:site_name" content="which-claude">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://mpalermiti.github.io/which-claude/">
+  <meta name="twitter:title" content="which-claude · Find the right Claude model for your prompt">
+  <meta name="twitter:description" content="One command, all three models, clear recommendation. Test your prompt on Haiku, Sonnet, and Opus in 60 seconds.">
+  <meta name="twitter:creator" content="@michaelp">
+
+  <!-- Additional SEO -->
+  <meta name="author" content="Michael Palermiti">
+  <meta name="keywords" content="claude, anthropic, llm, model selection, cli tool, cost optimization, ai">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "which-claude",
+    "description": "Find the right Claude model for your prompt. Test your prompt on Haiku, Sonnet, and Opus to compare quality, cost, and speed.",
+    "url": "https://mpalermiti.github.io/which-claude/",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "macOS, Linux, Windows",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "author": {
+      "@type": "Person",
+      "name": "Michael Palermiti",
+      "url": "https://michaelp.ai"
+    },
+    "codeRepository": "https://github.com/mpalermiti/which-claude"
+  }
+  </script>
+
   <style>
     :root {
       --bg: #ffffff;
@@ -558,6 +602,12 @@
     .footer-credit {
       color: var(--text-secondary);
       font-size: 0.95rem;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .footer-credit a {
+      white-space: nowrap;
     }
 
     .footer-credit a {
