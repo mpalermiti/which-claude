@@ -1,5 +1,7 @@
 # which-claude
 
+**[→ mpalermiti.github.io/which-claude](https://mpalermiti.github.io/which-claude/)**
+
 **Find the right Claude model for your prompt. One command, all three models, clear recommendation.**
 
 ```bash
