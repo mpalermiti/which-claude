@@ -1,5 +1,12 @@
 # which-claude Roadmap
 
+## v1.0.2 (SHIPPED) — March 11, 2026
+
+**Bug fix release**
+- Fixed recommendation text showing incorrect score (1/2 instead of 3/3)
+- Fixed savings calculation (was showing ~0% instead of actual percentage)
+- Fixed comparison model in output (was showing "vs haiku" instead of "vs sonnet")
+
 ## v1.0 (SHIPPED) — March 2026
 
 All pre-launch and post-launch features complete!

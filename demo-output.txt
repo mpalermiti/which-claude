@@ -18,7 +18,7 @@ which-claude · Support ticket classifier · 5 cases
 [90m└────────[39m[90m┴─────────[39m[90m┴────────[39m[90m┴────────[39m[90m┴───────────┘[39m
 
 ✅ Use SONNET
-   All models scored 1/2. Sonnet saves ~0% vs sonnet with no quality loss.
+   All models scored 5/5. Sonnet saves ~86% vs opus with no quality loss.
 
 💡 Thinking mode analysis:
    Sonnet: 0.6 → 1.0 (+67%) with thinking
