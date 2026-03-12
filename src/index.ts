@@ -15,6 +15,8 @@ import { renderCostProjection, renderQuickReference } from './projection.js';
 import { watchConfigFile } from './watch.js';
 import { analyzeCaching, renderCachingAnalysis, estimateSystemPromptTokens } from './caching.js';
 import { ModelName } from './types.js';
+import { runInteractiveSetup } from './init.js';
+import fs from 'fs/promises';
 
 const program = new Command();
 
@@ -40,6 +42,19 @@ const options = program.opts();
 
 async function runTests() {
   try {
+    // Check if config file exists - if not, run interactive setup
+    try {
+      await fs.access(options.config);
+    } catch (error) {
+      // Config file doesn't exist - run interactive setup
+      const setupComplete = await runInteractiveSetup(options.config);
+      if (!setupComplete) {
+        // User cancelled or setup failed
+        process.exit(0);
+      }
+      // Setup complete, continue with running tests
+    }
+
     // Load and validate config
     const config = await loadConfig(options.config);
 
