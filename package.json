@@ -1,6 +1,6 @@
 {
   "name": "which-claude",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Find the right Claude model for your prompt. One command, all three models, clear recommendation.",
   "main": "dist/index.js",
   "bin": {
