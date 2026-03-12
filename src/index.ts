@@ -169,7 +169,7 @@ async function runTests() {
 
     // Generate recommendation
     const recommendation = options.recommend !== false
-      ? generateRecommendation(summaries)
+      ? generateRecommendation(summaries, caseResults.length)
       : undefined;
 
     const result = {

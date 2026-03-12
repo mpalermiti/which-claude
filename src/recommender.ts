@@ -58,7 +58,7 @@ export function buildSummaries(
   return summaries;
 }
 
-export function generateRecommendation(summaries: ModelSummary[]): string {
+export function generateRecommendation(summaries: ModelSummary[], numCases: number): string {
   // Sort by quality/accuracy (descending), then by cost (ascending)
   const sorted = [...summaries].sort((a, b) => {
     const scoreA = a.accuracy ?? a.quality ?? 0;
@@ -80,8 +80,13 @@ export function generateRecommendation(summaries: ModelSummary[]): string {
   // All models perform equally well → recommend cheapest
   if (Math.abs(bestScore - worstScore) < 0.1) {
     const cheapest = [...summaries].sort((a, b) => a.costPer1k - b.costPer1k)[0];
-    const savings = ((best.costPer1k - cheapest.costPer1k) / best.costPer1k) * 100;
-    return `✅ Use ${cheapest.model.toUpperCase()}\n   All models scored ${bestScore.toFixed(isExactMatch ? 0 : 1)}${isExactMatch ? '/' + summaries.length : '/5'}. ${cheapest.model.charAt(0).toUpperCase() + cheapest.model.slice(1)} saves ~${savings.toFixed(0)}% vs ${best.model} with no quality loss.`;
+    const mostExpensive = [...summaries].sort((a, b) => b.costPer1k - a.costPer1k)[0];
+    const savings = ((mostExpensive.costPer1k - cheapest.costPer1k) / mostExpensive.costPer1k) * 100;
+
+    // Calculate total cases passed (for exact match scoring)
+    const totalCasesPassed = isExactMatch ? Math.round(bestScore * numCases) : bestScore;
+
+    return `✅ Use ${cheapest.model.toUpperCase()}\n   All models scored ${totalCasesPassed}${isExactMatch ? '/' + numCases : '/5'}. ${cheapest.model.charAt(0).toUpperCase() + cheapest.model.slice(1)} saves ~${savings.toFixed(0)}% vs ${mostExpensive.model} with no quality loss.`;
   }
 
   // Mid-tier offers good balance
@@ -91,7 +96,9 @@ export function generateRecommendation(summaries: ModelSummary[]): string {
   }
 
   // Only top model succeeds
-  return `🔴 Use ${best.model.toUpperCase()}\n   Only ${best.model} meets quality requirements (${bestScore.toFixed(1)}${isExactMatch ? '/' + summaries.length : '/5'}).\n   ${worst.model.charAt(0).toUpperCase() + worst.model.slice(1)} scored ${worstScore.toFixed(1)} — insufficient for this task.`;
+  const bestCasesPassed = isExactMatch ? Math.round(bestScore * numCases) : bestScore;
+  const worstCasesPassed = isExactMatch ? Math.round(worstScore * numCases) : worstScore;
+  return `🔴 Use ${best.model.toUpperCase()}\n   Only ${best.model} meets quality requirements (${bestCasesPassed}${isExactMatch ? '/' + numCases : '/5'}).\n   ${worst.model.charAt(0).toUpperCase() + worst.model.slice(1)} scored ${worstCasesPassed}${isExactMatch ? '/' + numCases : '/5'} — insufficient for this task.`;
 }
 
 export function analyzeThinkingMode(
